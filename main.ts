@@ -13,19 +13,17 @@ import rehypeSlug from "rehype-slug";
 import rehypeFormat from "rehype-format";
 import remarkRehype from "remark-rehype";
 
-const markdownParser = remark()
-  .use(remarkGfm);
-
-const extractTitle = (
+function extractTitle(
   markdown: string,
   inputPath: string,
   explicitTitle?: string,
-): string => {
+): string {
   if (explicitTitle?.trim()) {
     return explicitTitle.trim();
   }
 
-  const tree = markdownParser.parse(markdown);
+  const tree = remark()
+    .use(remarkGfm).parse(markdown);
 
   const h1 = tree.children.find(
     (node) => node.type === "heading" && node.depth === 1,
@@ -42,12 +40,12 @@ const extractTitle = (
   const filename = basename(inputPath, extname(inputPath));
 
   return filename || "Document";
-};
+}
 
-const markdownToHtml = async (
+async function markdownToHtml(
   markdown: string,
   title: string,
-): Promise<string> => {
+): Promise<string> {
   const parsed = await remark()
     .use(remarkGfm)
     .use(remarkRehype, {
@@ -100,6 +98,7 @@ h3:hover .heading-anchor {
         properties: {
           className: ["heading-anchor", "fa", "fa-link"],
         },
+        children: [],
       },
     })
     .use(rehypeFormat)
@@ -109,9 +108,9 @@ h3:hover .heading-anchor {
     .process(markdown);
 
   return parsed.toString();
-};
+}
 
-const printUsage = (): void => {
+function printUsage(): void {
   console.log(`
 Usage:
   yymd2html <input.md>
@@ -123,44 +122,48 @@ Options:
   -o, --output <path>   Output HTML path
   -h, --help            Show this help
 `);
-};
-
-const args = parseArgs(Deno.args, {
-  string: ["title", "output"],
-  boolean: ["help"],
-  alias: {
-    t: "title",
-    o: "output",
-    h: "help",
-  },
-});
-
-if (args.help) {
-  printUsage();
-  Deno.exit(0);
 }
 
-if (args._.length !== 1) {
-  printUsage();
-  Deno.exit(1);
+async function main(): Promise<void> {
+  const args = parseArgs(Deno.args, {
+    string: ["title", "output"],
+    boolean: ["help"],
+    alias: {
+      t: "title",
+      o: "output",
+      h: "help",
+    },
+  });
+
+  if (args.help) {
+    printUsage();
+    Deno.exit(0);
+  }
+
+  if (args._.length !== 1) {
+    printUsage();
+    Deno.exit(1);
+  }
+
+  const inputPath = String(args._[0]);
+  const markdown = await Deno.readTextFile(inputPath);
+
+  const title = extractTitle(
+    markdown,
+    inputPath,
+    args.title ? String(args.title) : undefined,
+  );
+
+  const html = await markdownToHtml(markdown, title);
+
+  const outputPath = args.output ? String(args.output) : join(
+    dirname(inputPath),
+    `${basename(inputPath, extname(inputPath))}.html`,
+  );
+
+  await Deno.writeTextFile(outputPath, html);
+
+  console.log(`Generated: ${outputPath}`);
 }
 
-const inputPath = String(args._[0]);
-const markdown = await Deno.readTextFile(inputPath);
-
-const title = extractTitle(
-  markdown,
-  inputPath,
-  args.title ? String(args.title) : undefined,
-);
-
-const outputPath = args.output ? String(args.output) : join(
-  dirname(inputPath),
-  `${basename(inputPath, extname(inputPath))}.html`,
-);
-
-const html = await markdownToHtml(markdown, title);
-
-await Deno.writeTextFile(outputPath, html);
-
-console.log(`Generated: ${outputPath}`);
+await main();
