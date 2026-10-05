@@ -1,20 +1,20 @@
-import { parseArgs } from "@std/cli/parse-args"
-import { basename, dirname, extname, join } from "@std/path"
-import { toString } from "mdast-util-to-string"
+import { parseArgs } from "@std/cli/parse-args";
+import { basename, dirname, extname, join } from "@std/path";
+import { toString } from "mdast-util-to-string";
 
-import rehypeStringify from "rehype-stringify"
-import { remark } from "remark"
-import remarkGfm from "remark-gfm"
-import rehypeRaw from "rehype-raw"
-import rehypeDocument from "rehype-document"
-import rehypeCallouts from "rehype-callouts"
-import rehypeAutolinkHeadings from "rehype-autolink-headings"
-import rehypeSlug from "rehype-slug"
-import rehypeFormat from "rehype-format"
-import remarkRehype from "remark-rehype"
+import rehypeStringify from "rehype-stringify";
+import { remark } from "remark";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import rehypeDocument from "rehype-document";
+import rehypeCallouts from "rehype-callouts";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypeSlug from "rehype-slug";
+import rehypeFormat from "rehype-format";
+import remarkRehype from "remark-rehype";
 
 const markdownParser = remark()
-  .use(remarkGfm)
+  .use(remarkGfm);
 
 const extractTitle = (
   markdown: string,
@@ -22,27 +22,27 @@ const extractTitle = (
   explicitTitle?: string,
 ): string => {
   if (explicitTitle?.trim()) {
-    return explicitTitle.trim()
+    return explicitTitle.trim();
   }
 
-  const tree = markdownParser.parse(markdown)
+  const tree = markdownParser.parse(markdown);
 
   const h1 = tree.children.find(
     (node) => node.type === "heading" && node.depth === 1,
-  )
+  );
 
   if (h1) {
-    const title = toString(h1).trim()
+    const title = toString(h1).trim();
 
     if (title) {
-      return title
+      return title;
     }
   }
 
-  const filename = basename(inputPath, extname(inputPath))
+  const filename = basename(inputPath, extname(inputPath));
 
-  return filename || "Document"
-}
+  return filename || "Document";
+};
 
 const markdownToHtml = async (
   markdown: string,
@@ -106,10 +106,10 @@ h3:hover .heading-anchor {
     .use(rehypeStringify, {
       allowDangerousHtml: true,
     })
-    .process(markdown)
+    .process(markdown);
 
-  return parsed.toString()
-}
+  return parsed.toString();
+};
 
 const printUsage = (): void => {
   console.log(`
@@ -122,8 +122,8 @@ Options:
   -t, --title <title>   Override document title
   -o, --output <path>   Output HTML path
   -h, --help            Show this help
-`)
-}
+`);
+};
 
 const args = parseArgs(Deno.args, {
   string: ["title", "output"],
@@ -133,36 +133,34 @@ const args = parseArgs(Deno.args, {
     o: "output",
     h: "help",
   },
-})
+});
 
 if (args.help) {
-  printUsage()
-  Deno.exit(0)
+  printUsage();
+  Deno.exit(0);
 }
 
 if (args._.length !== 1) {
-  printUsage()
-  Deno.exit(1)
+  printUsage();
+  Deno.exit(1);
 }
 
-const inputPath = String(args._[0])
-const markdown = await Deno.readTextFile(inputPath)
+const inputPath = String(args._[0]);
+const markdown = await Deno.readTextFile(inputPath);
 
 const title = extractTitle(
   markdown,
   inputPath,
   args.title ? String(args.title) : undefined,
-)
+);
 
-const outputPath = args.output
-  ? String(args.output)
-  : join(
-      dirname(inputPath),
-      `${basename(inputPath, extname(inputPath))}.html`,
-    )
+const outputPath = args.output ? String(args.output) : join(
+  dirname(inputPath),
+  `${basename(inputPath, extname(inputPath))}.html`,
+);
 
-const html = await markdownToHtml(markdown, title)
+const html = await markdownToHtml(markdown, title);
 
-await Deno.writeTextFile(outputPath, html)
+await Deno.writeTextFile(outputPath, html);
 
-console.log(`Generated: ${outputPath}`)
+console.log(`Generated: ${outputPath}`);
