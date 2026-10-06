@@ -7,11 +7,15 @@ import { remark } from "remark";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeDocument from "rehype-document";
+import type { Root } from "hast";
+import { select } from "hast-util-select";
 import rehypeCallouts from "rehype-callouts";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeSlug from "rehype-slug";
 import rehypeFormat from "rehype-format";
 import remarkRehype from "remark-rehype";
+
+import { customStyle } from "./styles/index.ts";
 
 function extractTitle(
   markdown: string,
@@ -42,6 +46,23 @@ function extractTitle(
   return filename || "Document";
 }
 
+function rehypeAddBodyClasses() {
+  return function (tree: Root) {
+    const body = select("body", tree);
+
+    if (!body || body.type !== "element") {
+      return;
+    }
+
+    const className = body.properties.className;
+
+    body.properties.className = [
+      ...(Array.isArray(className) ? className : []),
+      "highlightr-rounded",
+    ];
+  };
+}
+
 async function markdownToHtml(
   markdown: string,
   title: string,
@@ -53,42 +74,15 @@ async function markdownToHtml(
     })
     .use(rehypeRaw)
     .use(rehypeDocument, {
+      language: "ja",
       title,
       css: [
         "https://unpkg.com/rehype-callouts/dist/themes/github/index.css",
         "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css",
       ],
-      style: `
-:root {
-  color-scheme: light dark;
-}
-
-body {
-  color: light-dark(rgb(51 51 51), rgb(240 246 252));
-  background-color: light-dark(rgb(250 250 250), rgb(13 17 23));
-}
-
-.heading-anchor {
-  visibility: hidden;
-  font-size: 1rem;
-  margin-right: 0.3rem;
-  color: light-dark(rgb(51 51 51), rgb(240 246 252));
-  background-color: light-dark(rgb(250 250 250), rgb(13 17 23));
-}
-
-h1:hover .heading-anchor {
-  visibility: visible;
-}
-
-h2:hover .heading-anchor {
-  visibility: visible;
-}
-
-h3:hover .heading-anchor {
-  visibility: visible;
-}
-`,
+      style: customStyle,
     })
+    .use(rehypeAddBodyClasses)
     .use(rehypeCallouts, { theme: "obsidian" })
     .use(rehypeSlug)
     .use(rehypeAutolinkHeadings, {

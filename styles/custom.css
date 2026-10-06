@@ -1,0 +1,21 @@
+:root {
+    color-scheme: light dark;
+}
+
+body {
+    color: light-dark( rgb(51, 51, 51), rgb(218, 218, 218) );
+    background-color: light-dark( rgb(244, 245, 247), rgb(18, 18, 18) );
+    font-family: Inter, "Noto Sans CJK JP", ui-sans-serif, -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", "Google Sans Flex", Roboto, "Inter Variable", "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    transition: color 1s ease-in-out, background-color 1s ease-in-out;
+}
+
+mark{
+    color: inherit;
+}
+
+strong{
+    color: inherit;
+    font-weight: bolder;
+}
