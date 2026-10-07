@@ -2,8 +2,9 @@
 visibility: hidden;
 font-size: 1rem;
 margin-right: 0.3rem;
-color: light-dark(rgb(51 51 51), rgb(240 246 252));
-background-color: light-dark(rgb(250 250 250), rgb(13 17 23));
+color: light-dark( rgb(51, 51, 51), rgb(218, 218, 218) );
+background-color: light-dark( rgb(244, 245, 247), rgb(18, 18, 18) );
+
 }
 
 h1:hover .heading-anchor {
