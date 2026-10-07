@@ -76,6 +76,10 @@ async function markdownToHtml(
     .use(rehypeDocument, {
       language: "ja",
       title,
+      meta: {
+        name: "color-scheme",
+        content: "light dark",
+      },
       css: [
         "https://unpkg.com/rehype-callouts/dist/themes/github/index.css",
         "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css",
