@@ -66,6 +66,7 @@ function rehypeAddBodyClasses() {
 async function markdownToHtml(
   markdown: string,
   title: string,
+  noStyle: boolean,
 ): Promise<string> {
   const parsed = await remark()
     .use(remarkGfm)
@@ -84,7 +85,7 @@ async function markdownToHtml(
         "https://unpkg.com/rehype-callouts/dist/themes/github/index.css",
         "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css",
       ],
-      style: customStyle,
+      style: noStyle ? undefined : customStyle,
     })
     .use(rehypeAddBodyClasses)
     .use(rehypeCallouts, { theme: "obsidian" })
@@ -118,6 +119,7 @@ Usage:
 Options:
   -t, --title <title>   Override document title
   -o, --output <path>   Output HTML path
+  -s, --no-style        No write <style>
   -h, --help            Show this help
 `);
 }
@@ -125,10 +127,11 @@ Options:
 async function main(): Promise<void> {
   const args = parseArgs(Deno.args, {
     string: ["title", "output"],
-    boolean: ["help"],
+    boolean: ["help", "no-style"],
     alias: {
       t: "title",
       o: "output",
+      s: "no-style",
       h: "help",
     },
   });
@@ -152,7 +155,9 @@ async function main(): Promise<void> {
     args.title ? String(args.title) : undefined,
   );
 
-  const html = await markdownToHtml(markdown, title);
+  const noStyle = args["no-style"];
+
+  const html = await markdownToHtml(markdown, title, noStyle);
 
   const outputPath = args.output ? String(args.output) : join(
     dirname(inputPath),
